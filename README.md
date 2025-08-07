@@ -1,0 +1,7 @@
+# DUT RG Simulator
+
+DUT RG Simulator: Non-Singular Geometry and the Continuation of the General Relativity of Albert Einstein- 3.0
+
+This module of the DUT Quantum Simulator is a dedicated extension aimed at researchers rooted in classical physics, general relativity, and gravitational modeling. It presents a computational framework based on the Dead Universe Theory (DUT), which proposes a non-singular gravitational geometry as a natural evolution of the Einsteinian paradigm. Designed to be both integrable and independently testable, the module enables the simulation of test-particle geodesics, potential fields, and curvature structures without invoking singularities or event horizons.
+
+It must be emphasized: the DUT would be impossible without the theoretical foundation laid by Albert Einstein, the greatest physicist of all time. Far from replacing General Relativity, this simulator extends its reach — offering a continuous, regular spacetime structure that emerges logically from Einstein’s original insights, while resolving the long-standing physical discomforts surrounding singularities. This module thus serves as both a tribute to Einstein’s intellectual legacy and a proposal for its computational maturation. DUT Quantum Simulator: Non-Singular Geometry and the Continuation of the General Relativity of Albert Einstein - 3.0 - The only theory with a self-refutation code and automatic validation in modern cosmology.

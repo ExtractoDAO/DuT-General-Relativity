@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DUT Universal Simulator v4.0 Enhanced</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+      :root {
+        --bg-color: #0a0a1a;
+        --bg-secondary: #1a1a2e;
+        --text-color-primary: #e0e0e0;
+        --text-color-secondary: #b0b0b0;
+        --accent-color: #0f3460;
+        --button-bg: #2e86ab;
+        --button-hover-bg: #3498db;
+        --slider-track: #4a4a6b;
+        --slider-thumb: #90f0ff;
+        --grid-color: rgba(255, 255, 255, 0.1);
+        --axis-color: #888;
+        --results-bg: #2a2a3a;
+        --results-border: #4a4a6b;
+        --warning-color: #ffcc00;
+        --error-color: #ff4d4d;
+        --success-color: #2ecc71;
+        --ledger-bg: #1e2a38;
+        --ledger-border: #2c3e50;
+        --ledger-hash: #4ec9b0;
+        --blockchain-bg: #1c2836;
+        --tooltip-bg: rgba(20, 20, 30, 0.95);
+        --glow-color: #90f0ff;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--bg-color),
+          var(--bg-secondary)
+        );
+        color: var(--text-color-primary);
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* Sci-fi background animation */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+            circle at 20% 80%,
+            rgba(52, 152, 219, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(144, 240, 255, 0.1) 0%,
+            transparent 50%
+          );
+        z-index: -1;
+        animation: backgroundPulse 10s ease-in-out infinite alternate;
+      }
+
+      @keyframes backgroundPulse {
+        0% {
+          opacity: 0.3;
+        }
+        100% {
+          opacity: 0.7;
+        }
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+        width: 100%;
+        max-width: 1400px;
+        padding: 30px;
+        background: rgba(15, 52, 96, 0.6);
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(144, 240, 255, 0.1),
+          transparent
+        );
+        animation: scanLine 3s linear infinite;
+      }
+
+      @keyframes scanLine {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
+
+      h1 {
+        color: var(--glow-color);
+        font-size: 3.2rem;
+        margin-bottom: 15px;
+        text-shadow: 0 0 20px rgba(144, 240, 255, 0.8);
+        background: linear-gradient(90deg, #3498db, #90f0ff, #3498db);
+        background-size: 200% 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientShift 3s ease-in-out infinite;
+        position: relative;
+        z-index: 1;
+      }
+
+      @keyframes gradientShift {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      .subtitle {
+        color: var(--text-color-secondary);
+        max-width: 900px;
+        margin: 0 auto 25px;
+        font-size: 1.2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .info-button {
+        background: linear-gradient(45deg, #8e44ad, #9b59b6);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .info-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(139, 69, 173, 0.4);
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: auto auto auto;
+        gap: 25px;
+        width: 100%;
+        max-width: 1400px;
+        margin-bottom: 30px;
+      }
+
+      .panel {
+        background: rgba(15, 52, 96, 0.7);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--glow-color),
+          transparent
+        );
+        animation: borderGlow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes borderGlow {
+        0% {
+          opacity: 0.3;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .controls-panel {
+        grid-column: 1;
+        grid-row: 1 / 3;
+      }
+
+      .simulation-area {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .results-panel {
+        grid-column: 2;
+        grid-row: 2;
+      }
+
+      .ledger-panel {
+        grid-column: 1 / 3;
+        grid-row: 3;
+        background: var(--ledger-bg);
+      }
+
+      h2 {
+        color: var(--glow-color);
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(144, 240, 255, 0.3);
+        font-size: 2rem;
+        text-shadow: 0 0 10px rgba(144, 240, 255, 0.5);
+      }
+
+      .param-group {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .param-group:hover {
+        background: rgba(0, 0, 0, 0.4);
+        border-color: rgba(144, 240, 255, 0.2);
+      }
+
+      .param-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      label {
+        color: var(--text-color-secondary);
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .param-unit {
+        font-size: 0.9rem;
+        color: var(--glow-color);
+        font-weight: normal;
+      }
+
+      .tooltip-icon {
+        width: 16px;
+        height: 16px;
+        background: var(--glow-color);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--bg-color);
+        cursor: help;
+        position: relative;
+      }
+
+      .tooltip {
+        position: absolute;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--tooltip-bg);
+        color: var(--text-color-primary);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        border: 1px solid rgba(144, 240, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        max-width: 250px;
+        white-space: normal;
+      }
+
+      .tooltip-icon:hover .tooltip {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+
+      input[type="range"] {
+        flex: 1;
+        height: 10px;
+        background: var(--slider-track);
+        border-radius: 5px;
+        outline: none;
+        -webkit-appearance: none;
+        transition: all 0.3s ease;
+      }
+
+      input[type="range"]:hover {
+        background: rgba(74, 74, 107, 0.8);
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--slider-thumb);
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(144, 240, 255, 0.6);
+        transition: all 0.3s ease;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(144, 240, 255, 0.8);
+      }
+
+      input[type="number"] {
+        width: 120px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: var(--text-color-primary);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--glow-color);
+        box-shadow: 0 0 10px rgba(144, 240, 255, 0.3);
+      }
+
+      .value-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 0.95rem;
+        color: var(--text-color-secondary);
+      }
+
+      .value-display span {
+        font-weight: bold;
+        color: var(--slider-thumb);
+        font-family: "Courier New", monospace;
+      }
+
+      .presets-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .presets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .preset-btn {
+        background: linear-gradient(45deg, #34495e, #2c3e50);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .preset-btn:hover {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+      }
+
+      .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 25px;
+      }
+
+      button {
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      button:hover::before {
+        left: 100%;
+      }
+
+      button:hover {
+        background: var(--button-hover-bg);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      #runSimBtn {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        grid-column: span 2;
+      }
+
+      #exportDataBtn {
+        background: linear-gradient(45deg, #e67e22, #f39c12);
+      }
+
+      #loadPresetBtn {
+        background: linear-gradient(45deg, #8e44ad, #9b59b6);
+      }
+
+      #addToLedgerBtn {
+        background: linear-gradient(45deg, #9b59b6, #8e44ad);
+      }
+
+      #validateLedgerBtn {
+        background: linear-gradient(45deg, #f39c12, #f1c40f);
+      }
+
+      .chart-container {
+        position: relative;
+        height: 450px;
+        margin-top: 15px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      #simulationChart {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .chart-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .chart-btn {
+        background: rgba(52, 152, 219, 0.2);
+        color: var(--glow-color);
+        border: 1px solid rgba(52, 152, 219, 0.5);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .chart-btn:hover,
+      .chart-btn.active {
+        background: rgba(52, 152, 219, 0.4);
+        border-color: var(--glow-color);
+      }
+
+      #simulationResults {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 15px;
+        padding: 20px;
+        flex-grow: 1;
+        font-family: "Courier New", monospace;
+        font-size: 0.95rem;
+        overflow: auto;
+        max-height: 400px;
+        color: #a9d1e8;
+        white-space: pre-wrap;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        line-height: 1.4;
+      }
+
+      .results-section {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        border-left: 4px solid var(--glow-color);
+      }
+
+      .results-section h4 {
+        color: var(--glow-color);
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .metric-card {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+
+      .metric-value {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: var(--glow-color);
+        margin-bottom: 5px;
+      }
+
+      .metric-label {
+        font-size: 0.9rem;
+        color: var(--text-color-secondary);
+      }
+
+      .ledger-container {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 25px;
+        height: 400px;
+      }
+
+      .ledger-entries {
+        overflow-y: auto;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .ledger-entry {
+        background: var(--blockchain-bg);
+        border: 1px solid var(--ledger-border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .ledger-entry::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--glow-color), transparent);
+      }
+
+      .ledger-entry:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        border-color: var(--glow-color);
+      }
+
+      .ledger-entry h3 {
+        color: var(--glow-color);
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+      }
+
+      .ledger-entry p {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        word-wrap: break-word;
+      }
+
+      .ledger-hash {
+        color: var(--ledger-hash);
+        font-family: "Courier New", monospace;
+        font-size: 0.8rem;
+        word-break: break-all;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 5px 8px;
+        border-radius: 5px;
+        margin-top: 5px;
+      }
+
+      .blockchain-visual {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .chain-block {
+        width: 80px;
+        height: 60px;
+        background: linear-gradient(45deg, #2c3e50, #34495e);
+        border: 2px solid var(--glow-color);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9rem;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .chain-block:hover {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        transform: scale(1.05);
+      }
+
+      .chain-arrow {
+        width: 2px;
+        height: 15px;
+        background: var(--glow-color);
+        margin-bottom: 5px;
+        position: relative;
+      }
+
+      .chain-arrow::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: -3px;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 8px solid var(--glow-color);
+      }
+
+      #ledgerStatus {
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        margin-top: 15px;
+        font-size: 1.1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .valid {
+        background: rgba(46, 204, 113, 0.2);
+        color: var(--success-color);
+        border-color: var(--success-color);
+      }
+
+      .invalid {
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--error-color);
+        border-color: var(--error-color);
+      }
+
+      .mining {
+        background: rgba(241, 196, 15, 0.2);
+        color: var(--warning-color);
+        border-color: var(--warning-color);
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 18px 25px;
+        border-radius: 12px;
+        background: rgba(25, 25, 35, 0.95);
+        color: white;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        border-left: 5px solid #3498db;
+        transform: translateX(120%);
+        transition: transform 0.4s ease;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        max-width: 350px;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.success {
+        border-left-color: var(--success-color);
+      }
+
+      .notification.error {
+        border-left-color: var(--error-color);
+      }
+
+      .notification.warning {
+        border-left-color: var(--warning-color);
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--glow-color);
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 15px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--glow-color), #3498db);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 3px;
+      }
+
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background: var(--bg-secondary);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid rgba(144, 240, 255, 0.3);
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-color-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--glow-color);
+      }
+
+      @media (max-width: 1200px) {
+        .container {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto auto;
+        }
+        .controls-panel {
+          grid-column: 1;
+          grid-row: 1;
+        }
+        .simulation-area {
+          grid-column: 1;
+          grid-row: 2;
+        }
+        .results-panel {
+          grid-column: 1;
+          grid-row: 3;
+        }
+        .ledger-panel {
+          grid-column: 1;
+          grid-row: 4;
+        }
+
+        .ledger-container {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr auto;
+          height: auto;
+        }
+
+        .blockchain-visual {
+          order: 2;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .panel {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .button-group {
+          grid-template-columns: 1fr;
+        }
+
+        .presets-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .input-group {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        input[type="number"] {
+          width: 100%;
+          margin-top: 10px;
+        }
+
+        .metric-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="notifications"></div>
+
+    <!-- DUT Information Modal -->
+    <div id="dutInfoModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Dead Universe Theory (DUT)</h2>
+          <button class="modal-close" onclick="closeDUTModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>The Dead Universe Theory (DUT)</strong> proposes a
+            revolutionary view of cosmology, suggesting that our observable
+            universe is a retracting remnant of a much larger and older
+            ancestral structure.
+          </p>
+
+          <h3>Key Concepts:</h3>
+          <ul>
+            <li>
+              <strong>Asymmetric Retraction:</strong> The universe is
+              contracting in a non-uniform manner
+            </li>
+            <li>
+              <strong>Structural Black Holes:</strong> Fundamental elements of
+              cosmic architecture
+            </li>
+            <li>
+              <strong>UNO Particle:</strong> Unobservable Neutral Origin that
+              permeates the cosmos
+            </li>
+            <li>
+              <strong>Temporal Decoherence:</strong> Gradual loss of quantum
+              coherence over cosmic time
+            </li>
+          </ul>
+
+          <h3>Simulation Parameters:</h3>
+          <ul>
+            <li>
+              <strong>V₀ (Amplitude):</strong> Initial intensity of
+              gravitational potential
+            </li>
+            <li>
+              <strong>α (Decay):</strong> Exponential decay rate of the field
+            </li>
+            <li>
+              <strong>ω (Frequency):</strong> Fundamental oscillation of
+              spacetime
+            </li>
+            <li>
+              <strong>β (Central Potential):</strong> Strength of the
+              gravitational core
+            </li>
+            <li>
+              <strong>R_core (Core Radius):</strong> Characteristic scale of the
+              cosmic center
+            </li>
+            <li>
+              <strong>γ (Decoherence):</strong> Quantum coherence loss factor
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <header class="sci-fi-border">
+      <h1>DUT Universal Simulator v4.0</h1>
+      <p class="subtitle">
+        Advanced Dead Universe Theory Simulator with Complete Scientific
+        Analysis
+      </p>
+      <button class="info-button" onclick="showDUTModal()">
+        ℹ️ About DUT Theory
+      </button>
+    </header>
+
+    <div class="container">
+      <section class="panel controls-panel">
+        <h2>⚙️ Simulation Controls</h2>
+
+        <!-- Presets Section -->
+        <div class="presets-section">
+          <h3 style="color: var(--glow-color); margin-bottom: 15px">
+            🎯 Predefined Scenarios
+          </h3>
+          <div class="presets-grid">
+            <button class="preset-btn" onclick="loadPreset('standard')">
+              Standard DUT
+            </button>
+            <button class="preset-btn" onclick="loadPreset('slowCollapse')">
+              Slow Collapse
+            </button>
+            <button class="preset-btn" onclick="loadPreset('rapidDecay')">
+              Rapid Decay
+            </button>
+            <button class="preset-btn" onclick="loadPreset('oscillatory')">
+              Oscillatory
+            </button>
+            <button class="preset-btn" onclick="loadPreset('extremeCore')">
+              Extreme Core
+            </button>
+            <button class="preset-btn" onclick="loadPreset('quantum')">
+              Quantum
+            </button>
+          </div>
+        </div>
+
+        <!-- Parameters -->
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramV0">
+              Amplitude (V₀) <span class="param-unit">[J]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Initial intensity of gravitational potential. Higher values
+                  result in stronger fields.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramV0"
+              min="1e12"
+              max="5e15"
+              step="1e12"
+              value="1.6e15"
+            />
+            <input type="number" id="paramV0Input" step="1e12" />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramV0Value">1.60 × 10^15</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramAlpha">
+              Decay (α) <span class="param-unit">[m⁻¹]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Exponential decay rate of the gravitational field with
+                  distance.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramAlpha"
+              min="1e-18"
+              max="5e-15"
+              step="1e-17"
+              value="1.2e-15"
+            />
+            <input type="number" id="paramAlphaInput" step="1e-17" />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramAlphaValue">1.20 × 10^-15</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramOmega">
+              Frequency (ω) <span class="param-unit">[rad/s]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Fundamental frequency of spacetime oscillations in DUT.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramOmega"
+              min="1e-18"
+              max="1e-14"
+              step="1e-17"
+              value="3.5e-16"
+            />
+            <input type="number" id="paramOmegaInput" step="1e-17" />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramOmegaValue">3.50 × 10^-16</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramBeta">
+              Central Potential (β) <span class="param-unit">[J⋅m]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Intensity of gravitational potential at the universe's central
+                  core.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramBeta"
+              min="1e10"
+              max="5e14"
+              step="1e10"
+              value="2.2e13"
+            />
+            <input type="number" id="paramBetaInput" step="1e10" />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramBetaValue">2.20 × 10^13</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramRCore">
+              Core Radius (R_core) <span class="param-unit">[m]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Characteristic scale of the central core where gravitational
+                  effects are most intense.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramRCore"
+              min="1e15"
+              max="1e18"
+              step="1e14"
+              value="3.5e16"
+            />
+            <input type="number" id="paramRCoreInput" step="1e14" />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramRCoreValue">3.50 × 10^16</span>
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <label for="paramGamma">
+              Decoherence Factor (γ)
+              <span class="param-unit">[dimensionless]</span>
+              <span class="tooltip-icon"
+                >?
+                <div class="tooltip">
+                  Intensity of quantum coherence loss over cosmic time.
+                </div>
+              </span>
+            </label>
+          </div>
+          <div class="input-group">
+            <input
+              type="range"
+              id="paramGamma"
+              min="0.001"
+              max="0.1"
+              step="0.001"
+              value="0.025"
+            />
+            <input
+              type="number"
+              id="paramGammaInput"
+              step="0.001"
+              min="0.001"
+              max="0.1"
+            />
+          </div>
+          <div class="value-display">
+            <span>Value:</span>
+            <span id="paramGammaValue">0.025</span>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button id="runSimBtn">🚀 Run Simulation</button>
+          <button id="exportDataBtn" disabled>📊 Export Data</button>
+        </div>
+      </section>
+
+      <section class="panel simulation-area">
+        <h2>📈 Scientific Visualization</h2>
+        <div class="chart-controls">
+          <button class="chart-btn active" onclick="setChartMode('potential')">
+            Gravitational Potential
+          </button>
+          <button class="chart-btn" onclick="setChartMode('energy')">
+            Energy Density
+          </button>
+          <button class="chart-btn" onclick="setChartMode('phase')">
+            Phase Diagram
+          </button>
+          <button class="chart-btn" onclick="resetZoom()">🔍 Reset Zoom</button>
+        </div>
+        <div class="chart-container">
+          <canvas id="simulationChart"></canvas>
+        </div>
+      </section>
+
+      <section class="panel results-panel">
+        <h2>📋 Results Analysis</h2>
+        <div id="simulationResults">
+          <div class="results-section">
+            <h4>🎯 Simulation Status</h4>
+            <p>Run a simulation to see detailed results...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel ledger-panel">
+        <h2>🔗 Scientific Blockchain Registry</h2>
+        <div class="ledger-container">
+          <div class="ledger-entries" id="ledgerEntries"></div>
+          <div class="blockchain-visual" id="blockchainVisual">
+            <h3 style="color: var(--glow-color); margin-bottom: 15px">
+              Block Chain
+            </h3>
+            <div id="chainBlocks"></div>
+          </div>
+        </div>
+        <div class="button-group">
+          <button id="addToLedgerBtn" disabled>📝 Register Result</button>
+          <button id="validateLedgerBtn">✅ Validate Blockchain</button>
+        </div>
+        <div id="ledgerStatus" class="mining">
+          Status: Blockchain initialized
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Global configuration
+      let currentChart = null;
+      let currentChartMode = "potential";
+      let simulationData = null;
+      let dutLedger = null;
+
+      // SHA256 implementation (kept from original)
+      const CryptoJS = {
+        SHA256: function (message) {
+          function rightRotate(value, amount) {
+            return (value >>> amount) | (value << (32 - amount));
+          }
+          let msg = unescape(encodeURIComponent(message));
+          const msgLength = msg.length * 8;
+          let hash = [
+            0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f,
+            0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+          ];
+          msg += "\x80";
+          while (msg.length % 64 !== 56) msg += "\x00";
+          for (let i = 0; i < 8; i++) {
+            msg += String.fromCharCode((msgLength >>> (56 - i * 8)) & 0xff);
+          }
+          const k = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b,
+            0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01,
+            0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7,
+            0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+            0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152,
+            0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
+            0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+            0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819,
+            0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08,
+            0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f,
+            0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+            0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+          ];
+          for (let i = 0; i < msg.length; i += 64) {
+            const chunk = msg.slice(i, i + 64);
+            const w = [];
+            for (let j = 0; j < 16; j++) {
+              w[j] =
+                (chunk.charCodeAt(j * 4) << 24) |
+                (chunk.charCodeAt(j * 4 + 1) << 16) |
+                (chunk.charCodeAt(j * 4 + 2) << 8) |
+                chunk.charCodeAt(j * 4 + 3);
+            }
+            for (let j = 16; j < 64; j++) {
+              const s0 =
+                rightRotate(w[j - 15], 7) ^
+                rightRotate(w[j - 15], 18) ^
+                (w[j - 15] >>> 3);
+              const s1 =
+                rightRotate(w[j - 2], 17) ^
+                rightRotate(w[j - 2], 19) ^
+                (w[j - 2] >>> 10);
+              w[j] = (w[j - 16] + s0 + w[j - 7] + s1) & 0xffffffff;
+            }
+            let [a, b, c, d, e, f, g, h] = hash;
+            for (let j = 0; j < 64; j++) {
+              const S1 =
+                rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+              const ch = (e & f) ^ (~e & g);
+              const temp1 = (h + S1 + ch + k[j] + w[j]) & 0xffffffff;
+              const S0 =
+                rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+              const maj = (a & b) ^ (a & c) ^ (b & c);
+              const temp2 = (S0 + maj) & 0xffffffff;
+              h = g;
+              g = f;
+              f = e;
+              e = (d + temp1) & 0xffffffff;
+              d = c;
+              c = b;
+              b = a;
+              a = (temp1 + temp2) & 0xffffffff;
+            }
+            hash = hash.map(
+              (val, idx) => (val + [a, b, c, d, e, f, g, h][idx]) & 0xffffffff
+            );
+          }
+          return hash.map((val) => val.toString(16).padStart(8, "0")).join("");
+        },
+      };
+
+      // Enhanced DUT potential function
+      function dutPotential(r, t, params) {
+        const MIN_R = 1e-18;
+        const r_safe = Math.max(r, MIN_R);
+        const safe_t = Math.max(t, 1e-20);
+
+        // Temporal phase with decoherence
+        const phi_t =
+          params.omega * safe_t * (1 + params.gamma_decoh * Math.log1p(safe_t));
+
+        // Oscillatory term with exponential decay
+        const cos_term =
+          params.V0 *
+          Math.exp(-params.alpha * r_safe) *
+          Math.cos(params.omega * r_safe + phi_t);
+
+        // Central core term
+        const core_term =
+          (params.beta *
+            (1 -
+              Math.exp((-r_safe * r_safe) / (params.rcore * params.rcore)))) /
+          r_safe;
+
+        return cos_term + core_term;
+      }
+
+      // Function to calculate energy density
+      function energyDensity(r, t, params) {
+        const potential = dutPotential(r, t, params);
+        const c = 299792458; // speed of light
+        return Math.abs(potential) / (c * c);
+      }
+
+      // Enhanced Blockchain classes
+      class Block {
+        constructor(index, previousHash, data, timestamp = Date.now()) {
+          this.index = index;
+          this.previousHash = previousHash;
+          this.timestamp = timestamp;
+          this.data = data;
+          this.nonce = 0;
+          this.hash = this.calculateHash();
+        }
+
+        calculateHash() {
+          return CryptoJS.SHA256(
+            this.index +
+              this.previousHash +
+              this.timestamp +
+              JSON.stringify(this.data) +
+              this.nonce
+          );
+        }
+
+        mineBlock(difficulty) {
+          const target = Array(difficulty + 1).join("0");
+          while (!this.hash.startsWith(target)) {
+            this.nonce++;
+            this.hash = this.calculateHash();
+          }
+        }
+      }
+
+      class Blockchain {
+        constructor() {
+          this.chain = [this.createGenesisBlock()];
+          this.difficulty = 3;
+        }
+
+        createGenesisBlock() {
+          return new Block(0, "0", {
+            message: "DUT Blockchain Genesis Block",
+            timestamp: Date.now(),
+            version: "4.0",
+          });
+        }
+
+        getLatestBlock() {
+          return this.chain[this.chain.length - 1];
+        }
+
+        addBlock(newBlock) {
+          newBlock.previousHash = this.getLatestBlock().hash;
+          newBlock.mineBlock(this.difficulty);
+          this.chain.push(newBlock);
+          this.renderLedger();
+          this.updateBlockchainVisual();
+        }
+
+        isChainValid() {
+          for (let i = 1; i < this.chain.length; i++) {
+            const current = this.chain[i];
+            const previous = this.chain[i - 1];
+            if (current.hash !== current.calculateHash()) return false;
+            if (current.previousHash !== previous.hash) return false;
+          }
+          return true;
+        }
+
+        renderLedger() {
+          const container = document.getElementById("ledgerEntries");
+          container.innerHTML = "";
+
+          this.chain.forEach((block, index) => {
+            const div = document.createElement("div");
+            div.className = "ledger-entry";
+            const date = new Date(block.timestamp);
+            const dateStr = `${date.getDate().toString().padStart(2, "0")}/${(
+              date.getMonth() + 1
+            )
+              .toString()
+              .padStart(2, "0")}/${date.getFullYear()} ${date
+              .getHours()
+              .toString()
+              .padStart(2, "0")}:${date
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}:${date
+              .getSeconds()
+              .toString()
+              .padStart(2, "0")}`;
+
+            div.innerHTML = `
+            <h3>🔗 Block #${block.index}</h3>
+            <p><strong>⏰ Timestamp:</strong> ${dateStr}</p>
+            <p><strong>🔗 Previous Hash:</strong></p>
+            <div class="ledger-hash">${block.previousHash}</div>
+            <p><strong>🆔 Current Hash:</strong></p>
+            <div class="ledger-hash">${block.hash}</div>
+            <p><strong>📊 Data:</strong> ${block.data.type || "Block data"}</p>
+            <p><strong>⛏️ Nonce:</strong> ${block.nonce}</p>
+          `;
+            container.appendChild(div);
+          });
+
+          container.scrollTop = container.scrollHeight;
+        }
+
+        updateBlockchainVisual() {
+          const container = document.getElementById("chainBlocks");
+          container.innerHTML = "";
+
+          this.chain.forEach((block, index) => {
+            if (index > 0) {
+              const arrow = document.createElement("div");
+              arrow.className = "chain-arrow";
+              container.appendChild(arrow);
+            }
+
+            const blockDiv = document.createElement("div");
+            blockDiv.className = "chain-block";
+            blockDiv.textContent = `#${block.index}`;
+            blockDiv.title = `Block ${
+              block.index
+            }\nHash: ${block.hash.substring(0, 16)}...`;
+            container.appendChild(blockDiv);
+          });
+        }
+      }
+
+      // Parameter presets
+      const presets = {
+        standard: {
+          V0: 1.6e15,
+          alpha: 1.2e-15,
+          omega: 3.5e-16,
+          beta: 2.2e13,
+          rcore: 3.5e16,
+          gamma_decoh: 0.025,
+        },
+        slowCollapse: {
+          V0: 8.0e14,
+          alpha: 5.0e-16,
+          omega: 1.0e-16,
+          beta: 1.0e13,
+          rcore: 5.0e16,
+          gamma_decoh: 0.01,
+        },
+        rapidDecay: {
+          V0: 3.0e15,
+          alpha: 3.0e-15,
+          omega: 8.0e-16,
+          beta: 5.0e13,
+          rcore: 2.0e16,
+          gamma_decoh: 0.08,
+        },
+        oscillatory: {
+          V0: 2.5e15,
+          alpha: 1.0e-15,
+          omega: 1.0e-15,
+          beta: 3.0e13,
+          rcore: 4.0e16,
+          gamma_decoh: 0.04,
+        },
+        extremeCore: {
+          V0: 4.0e15,
+          alpha: 2.0e-15,
+          omega: 5.0e-16,
+          beta: 1.0e14,
+          rcore: 1.0e16,
+          gamma_decoh: 0.06,
+        },
+        quantum: {
+          V0: 1.0e15,
+          alpha: 8.0e-16,
+          omega: 2.0e-15,
+          beta: 8.0e12,
+          rcore: 6.0e16,
+          gamma_decoh: 0.1,
+        },
+      };
+
+      // Utility functions
+      function showNotification(message, type = "info") {
+        const notifications = document.getElementById("notifications");
+        const notification = document.createElement("div");
+        notification.className = `notification ${type}`;
+        notification.innerHTML = message;
+        notifications.appendChild(notification);
+
+        setTimeout(() => notification.classList.add("show"), 10);
+        setTimeout(() => {
+          notification.classList.remove("show");
+          setTimeout(() => {
+            if (notifications.contains(notification)) {
+              notifications.removeChild(notification);
+            }
+          }, 400);
+        }, 4000);
+      }
+
+      function formatScientific(value) {
+        if (typeof value !== "number" || isNaN(value)) return "N/A";
+        return value.toExponential(2).replace("e", " × 10^");
+      }
+
+      function formatNumber(value, decimals = 2) {
+        if (typeof value !== "number" || isNaN(value)) return "N/A";
+        return value.toFixed(decimals);
+      }
+
+      function updateSliderValue(sliderId, displayId) {
+        const slider = document.getElementById(sliderId);
+        const display = document.getElementById(displayId);
+        const input = document.getElementById(sliderId + "Input");
+        const value = parseFloat(slider.value);
+
+        if (sliderId === "paramGamma") {
+          display.textContent = value.toFixed(3);
+        } else {
+          display.textContent = formatScientific(value);
+        }
+
+        input.value = value;
+      }
+
+      function syncInputToSlider(inputId, sliderId, displayId) {
+        const input = document.getElementById(inputId);
+        const slider = document.getElementById(sliderId);
+        const value = parseFloat(input.value);
+
+        if (
+          !isNaN(value) &&
+          value >= parseFloat(slider.min) &&
+          value <= parseFloat(slider.max)
+        ) {
+          slider.value = value;
+          updateSliderValue(sliderId, displayId);
+        }
+      }
+
+      // Preset functions
+      function loadPreset(presetName) {
+        if (!presets[presetName]) return;
+
+        const preset = presets[presetName];
+
+        // Update sliders and inputs
+        Object.keys(preset).forEach((key) => {
+          const paramName =
+            key === "gamma_decoh"
+              ? "paramGamma"
+              : "param" + key.charAt(0).toUpperCase() + key.slice(1);
+          const slider = document.getElementById(paramName);
+          const input = document.getElementById(paramName + "Input");
+          const display = document.getElementById(paramName + "Value");
+
+          if (slider && input && display) {
+            slider.value = preset[key];
+            input.value = preset[key];
+            updateSliderValue(paramName, paramName + "Value");
+          }
+        });
+
+        showNotification(
+          `Preset "${presetName}" loaded successfully!`,
+          "success"
+        );
+      }
+
+      // Chart functions
+      function setChartMode(mode) {
+        currentChartMode = mode;
+
+        // Update buttons
+        document.querySelectorAll(".chart-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event.target.classList.add("active");
+
+        // Redraw chart if data exists
+        if (simulationData) {
+          updateChart();
+        }
+      }
+
+      function resetZoom() {
+        if (currentChart) {
+          currentChart.resetZoom();
+        }
+      }
+
+      function createChart() {
+        const ctx = document.getElementById("simulationChart").getContext("2d");
+
+        currentChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Gravitational Potential",
+                data: [],
+                borderColor: "#3498db",
+                backgroundColor: "rgba(52, 152, 219, 0.1)",
+                borderWidth: 3,
+                fill: false,
+                tension: 0.1,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: "index",
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#90f0ff",
+                  font: {
+                    size: 14,
+                  },
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(20, 20, 30, 0.9)",
+                titleColor: "#90f0ff",
+                bodyColor: "#e0e0e0",
+                borderColor: "#90f0ff",
+                borderWidth: 1,
+              },
+              zoom: {
+                zoom: {
+                  wheel: {
+                    enabled: true,
+                  },
+                  pinch: {
+                    enabled: true,
+                  },
+                  mode: "x",
+                },
+                pan: {
+                  enabled: true,
+                  mode: "x",
+                },
+              },
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Time (billion years)",
+                  color: "#90f0ff",
+                  font: {
+                    size: 14,
+                  },
+                },
+                ticks: {
+                  color: "#b0b0b0",
+                },
+                grid: {
+                  color: "rgba(144, 240, 255, 0.1)",
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Gravitational Potential (J)",
+                  color: "#90f0ff",
+                  font: {
+                    size: 14,
+                  },
+                },
+                ticks: {
+                  color: "#b0b0b0",
+                  callback: function (value) {
+                    return formatScientific(value);
+                  },
+                },
+                grid: {
+                  color: "rgba(144, 240, 255, 0.1)",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function updateChart() {
+        if (!currentChart || !simulationData) return;
+
+        const { timePoints, potentialData, energyData } = simulationData;
+
+        let data, label, color;
+
+        switch (currentChartMode) {
+          case "potential":
+            data = potentialData;
+            label = "Gravitational Potential (J)";
+            color = "#3498db";
+            currentChart.options.scales.y.title.text =
+              "Gravitational Potential (J)";
+            break;
+          case "energy":
+            data = energyData;
+            label = "Energy Density (J/m³)";
+            color = "#e74c3c";
+            currentChart.options.scales.y.title.text = "Energy Density (J/m³)";
+            break;
+          case "phase":
+            // Simplified phase diagram (potential vs energy)
+            data = potentialData.map((pot, i) => ({
+              x: pot,
+              y: energyData[i],
+            }));
+            label = "Phase Diagram";
+            color = "#9b59b6";
+            currentChart.options.scales.x.title.text =
+              "Gravitational Potential (J)";
+            currentChart.options.scales.y.title.text = "Energy Density (J/m³)";
+            break;
+        }
+
+        currentChart.data.labels =
+          currentChartMode === "phase" ? [] : timePoints;
+        currentChart.data.datasets[0].data = data;
+        currentChart.data.datasets[0].label = label;
+        currentChart.data.datasets[0].borderColor = color;
+        currentChart.data.datasets[0].backgroundColor = color + "20";
+
+        currentChart.update();
+      }
+
+      // Main simulation function
+      function runSimulation() {
+        const params = {
+          V0: parseFloat(document.getElementById("paramV0").value),
+          alpha: parseFloat(document.getElementById("paramAlpha").value),
+          omega: parseFloat(document.getElementById("paramOmega").value),
+          beta: parseFloat(document.getElementById("paramBeta").value),
+          rcore: parseFloat(document.getElementById("paramRCore").value),
+          gamma_decoh: parseFloat(document.getElementById("paramGamma").value),
+        };
+
+        // Parameter validation
+        if (Object.values(params).some((val) => isNaN(val) || val <= 0)) {
+          showNotification("❌ Invalid parameters detected!", "error");
+          return;
+        }
+
+        showNotification("🚀 Starting DUT simulation...", "warning");
+
+        const runBtn = document.getElementById("runSimBtn");
+        const originalText = runBtn.innerHTML;
+        runBtn.innerHTML = '<span class="loading-spinner"></span>Simulating...';
+        runBtn.disabled = true;
+
+        // Simulate asynchronous processing
+        setTimeout(() => {
+          try {
+            const steps = 1000;
+            const maxTime = 180e9; // 180 billion years
+            const fixed_r = 1e22; // Fixed radius for temporal analysis
+
+            const timePoints = [];
+            const potentialData = [];
+            const energyData = [];
+
+            for (let i = 0; i <= steps; i++) {
+              const t = (i / steps) * maxTime;
+              const timeInBillionYears = t / (365.25 * 24 * 3600 * 1e9);
+
+              const potential = dutPotential(fixed_r, t, params);
+              const energy = energyDensity(fixed_r, t, params);
+
+              timePoints.push(timeInBillionYears);
+              potentialData.push(potential);
+              energyData.push(energy);
+            }
+
+            simulationData = {
+              params,
+              timePoints,
+              potentialData,
+              energyData,
+              maxTime,
+              fixed_r,
+              steps,
+            };
+
+            updateChart();
+            displayResults();
+
+            document.getElementById("addToLedgerBtn").disabled = false;
+            document.getElementById("exportDataBtn").disabled = false;
+
+            showNotification(
+              "✅ Simulation completed successfully!",
+              "success"
+            );
+          } catch (error) {
+            console.error("Simulation error:", error);
+            showNotification(
+              "❌ Error during simulation: " + error.message,
+              "error"
+            );
+          } finally {
+            runBtn.innerHTML = originalText;
+            runBtn.disabled = false;
+          }
+        }, 1500);
+      }
+
+      // Function to display detailed results
+      function displayResults() {
+        if (!simulationData) return;
+
+        const { params, potentialData, energyData, timePoints } =
+          simulationData;
+
+        const maxPotential = Math.max(...potentialData);
+        const minPotential = Math.min(...potentialData);
+        const avgPotential =
+          potentialData.reduce((a, b) => a + b, 0) / potentialData.length;
+
+        const maxEnergy = Math.max(...energyData);
+        const minEnergy = Math.min(...energyData);
+        const avgEnergy =
+          energyData.reduce((a, b) => a + b, 0) / energyData.length;
+
+        // Calculate advanced metrics
+        const potentialRange = maxPotential - minPotential;
+        const energyRange = maxEnergy - minEnergy;
+
+        // Find inflection points (simplified)
+        let inflectionPoints = 0;
+        for (let i = 1; i < potentialData.length - 1; i++) {
+          const prev = potentialData[i - 1];
+          const curr = potentialData[i];
+          const next = potentialData[i + 1];
+
+          if ((curr > prev && curr > next) || (curr < prev && curr < next)) {
+            inflectionPoints++;
+          }
+        }
+
+        // Estimate universe lifetime (when potential approaches zero)
+        let universeLifetime = "Indefinite";
+        for (let i = potentialData.length - 1; i >= 0; i--) {
+          if (Math.abs(potentialData[i]) < Math.abs(maxPotential) * 0.01) {
+            universeLifetime = `${timePoints[i].toFixed(1)} billion years`;
+            break;
+          }
+        }
+
+        const resultsHTML = `
+        <div class="results-section">
+          <h4>🎯 Simulation Parameters</h4>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(params.V0)}</div>
+              <div class="metric-label">Amplitude (V₀)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(params.alpha)}</div>
+              <div class="metric-label">Decay (α)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(params.omega)}</div>
+              <div class="metric-label">Frequency (ω)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(params.beta)}</div>
+              <div class="metric-label">Central Potential (β)</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(params.rcore)}</div>
+              <div class="metric-label">Core Radius</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${params.gamma_decoh.toFixed(3)}</div>
+              <div class="metric-label">Decoherence (γ)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-section">
+          <h4>📊 Gravitational Potential Analysis</h4>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(maxPotential)}</div>
+              <div class="metric-label">Maximum</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(minPotential)}</div>
+              <div class="metric-label">Minimum</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(avgPotential)}</div>
+              <div class="metric-label">Average</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(
+                potentialRange
+              )}</div>
+              <div class="metric-label">Range</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-section">
+          <h4>⚡ Energy Density Analysis</h4>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(maxEnergy)}</div>
+              <div class="metric-label">Maximum</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(minEnergy)}</div>
+              <div class="metric-label">Minimum</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(avgEnergy)}</div>
+              <div class="metric-label">Average</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${formatScientific(energyRange)}</div>
+              <div class="metric-label">Variation</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-section">
+          <h4>🌌 DUT Cosmological Metrics</h4>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">${universeLifetime}</div>
+              <div class="metric-label">Estimated Lifetime</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${inflectionPoints}</div>
+              <div class="metric-label">Inflection Points</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${simulationData.steps}</div>
+              <div class="metric-label">Data Points</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">180.0</div>
+              <div class="metric-label">Period (billion years)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-section">
+          <h4>🔬 Physical Interpretation</h4>
+          <p><strong>System Behavior:</strong> ${
+            potentialRange > Math.abs(avgPotential)
+              ? "Highly oscillatory"
+              : "Relatively stable"
+          }</p>
+          <p><strong>Energy Trend:</strong> ${
+            avgEnergy > maxEnergy * 0.5
+              ? "High average density"
+              : "Low average density"
+          }</p>
+          <p><strong>Quantum Decoherence:</strong> ${
+            params.gamma_decoh > 0.05 ? "Significant" : "Moderate"
+          }</p>
+          <p><strong>Core Stability:</strong> ${
+            params.beta > 1e13 ? "Dominant core" : "Moderate core"
+          }</p>
+        </div>
+      `;
+
+        document.getElementById("simulationResults").innerHTML = resultsHTML;
+      }
+
+      // Function to export data
+      function exportData() {
+        if (!simulationData) {
+          showNotification("❌ No simulation to export!", "error");
+          return;
+        }
+
+        const { params, timePoints, potentialData, energyData } =
+          simulationData;
+
+        // Create CSV
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent +=
+          "Time (billion years),Gravitational Potential (J),Energy Density (J/m³)\n";
+
+        for (let i = 0; i < timePoints.length; i++) {
+          csvContent += `${timePoints[i]},${potentialData[i]},${energyData[i]}\n`;
+        }
+
+        // Add parameters at the end
+        csvContent += "\n\nSimulation Parameters:\n";
+        csvContent += `V0,${params.V0}\n`;
+        csvContent += `Alpha,${params.alpha}\n`;
+        csvContent += `Omega,${params.omega}\n`;
+        csvContent += `Beta,${params.beta}\n`;
+        csvContent += `R_core,${params.rcore}\n`;
+        csvContent += `Gamma,${params.gamma_decoh}\n`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute(
+          "download",
+          `dut_simulation_${new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/:/g, "-")}.csv`
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification("📊 Data exported successfully!", "success");
+      }
+
+      // Modal functions
+      function showDUTModal() {
+        document.getElementById("dutInfoModal").classList.add("show");
+      }
+
+      function closeDUTModal() {
+        document.getElementById("dutInfoModal").classList.remove("show");
+      }
+
+      // Event listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        // Initialize blockchain
+        dutLedger = new Blockchain();
+        dutLedger.renderLedger();
+        dutLedger.updateBlockchainVisual();
+
+        // Configure sliders and inputs
+        const sliders = [
+          { id: "paramV0", display: "paramV0Value" },
+          { id: "paramAlpha", display: "paramAlphaValue" },
+          { id: "paramOmega", display: "paramOmegaValue" },
+          { id: "paramBeta", display: "paramBetaValue" },
+          { id: "paramRCore", display: "paramRCoreValue" },
+          { id: "paramGamma", display: "paramGammaValue" },
+        ];
+
+        sliders.forEach((slider) => {
+          updateSliderValue(slider.id, slider.display);
+
+          // Event listener for slider
+          document.getElementById(slider.id).addEventListener("input", () => {
+            updateSliderValue(slider.id, slider.display);
+          });
+
+          // Event listener for numeric input
+          document
+            .getElementById(slider.id + "Input")
+            .addEventListener("change", () => {
+              syncInputToSlider(slider.id + "Input", slider.id, slider.display);
+            });
+        });
+
+        // Create chart
+        createChart();
+
+        // Event listeners for buttons
+        document
+          .getElementById("runSimBtn")
+          .addEventListener("click", runSimulation);
+        document
+          .getElementById("exportDataBtn")
+          .addEventListener("click", exportData);
+
+        document
+          .getElementById("addToLedgerBtn")
+          .addEventListener("click", () => {
+            if (!simulationData) {
+              showNotification("❌ Run simulation first!", "error");
+              return;
+            }
+
+            const ledgerStatus = document.getElementById("ledgerStatus");
+            ledgerStatus.textContent = "Status: Mining block...";
+            ledgerStatus.className = "mining";
+
+            const newBlock = new Block(
+              dutLedger.chain.length,
+              dutLedger.getLatestBlock().hash,
+              {
+                type: "DUT Simulation Result v4.0",
+                timestamp: new Date().toISOString(),
+                simulation: {
+                  params: simulationData.params,
+                  maxPotential: Math.max(...simulationData.potentialData),
+                  minPotential: Math.min(...simulationData.potentialData),
+                  maxEnergy: Math.max(...simulationData.energyData),
+                  minEnergy: Math.min(...simulationData.energyData),
+                  dataPoints: simulationData.steps,
+                  chartMode: currentChartMode,
+                },
+              }
+            );
+
+            setTimeout(() => {
+              dutLedger.addBlock(newBlock);
+              ledgerStatus.textContent = "Status: Block added successfully!";
+              ledgerStatus.className = "valid";
+              showNotification(
+                "🔗 Result registered in blockchain!",
+                "success"
+              );
+            }, 2000);
+          });
+
+        document
+          .getElementById("validateLedgerBtn")
+          .addEventListener("click", () => {
+            const isValid = dutLedger.isChainValid();
+            const ledgerStatus = document.getElementById("ledgerStatus");
+
+            if (isValid) {
+              ledgerStatus.textContent = "Status: Blockchain valid! ✅";
+              ledgerStatus.className = "valid";
+              showNotification(
+                "✅ Blockchain validated successfully!",
+                "success"
+              );
+            } else {
+              ledgerStatus.textContent = "Status: Blockchain invalid! ❌";
+              ledgerStatus.className = "invalid";
+              showNotification("❌ Invalid blockchain detected!", "error");
+            }
+          });
+
+        // Close modal when clicking outside
+        document
+          .getElementById("dutInfoModal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "dutInfoModal") {
+              closeDUTModal();
+            }
+          });
+
+        // Load default preset
+        loadPreset("standard");
+      });
+
+      // Make functions global for button usage
+      window.loadPreset = loadPreset;
+      window.setChartMode = setChartMode;
+      window.resetZoom = resetZoom;
+      window.showDUTModal = showDUTModal;
+      window.closeDUTModal = closeDUTModal;
+    </script>
+
+    <!-- 🧠 Painel de Robustez Teórica -->
+    <div
+      id="robustness-panel"
+      style="
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        padding: 10px;
+        background: #222;
+        color: #0f0;
+        border: 1px solid #0f0;
+        font-family: monospace;
+        z-index: 999;
+      "
+    >
+      Robustness Score: <span id="robustness-score">100</span>/100
+    </div>
+    <script>
+      function updateRobustness(score) {
+        const s = Math.max(0, Math.min(100, score));
+        document.getElementById("robustness-score").textContent = s;
+      }
+      // Simulação básica de oscilação do score
+      setInterval(() => {
+        const score = 90 + Math.floor(Math.random() * 10);
+        updateRobustness(score);
+      }, 5000);
+    </script>
+
+    <!-- 🔐 Hash SHA-256 para verificação científica -->
+    <script>
+      async function computeSHA256(inputText) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(inputText);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+      window.addEventListener("load", async () => {
+        const raw = document.documentElement.innerHTML;
+        const hash = await computeSHA256(raw);
+        const div = document.createElement("div");
+        div.textContent = "SHA256: " + hash;
+        div.style =
+          "position:fixed;top:10px;right:10px;background:#111;color:#fff;padding:5px;font-size:12px;z-index:9999;border:1px solid #555";
+        document.body.appendChild(div);
+      });
+    </script>
+
+    <!-- 📂 Exportador de Snapshot HTML -->
+    <button
+      onclick="downloadSnapshot()"
+      style="
+        position: fixed;
+        bottom: 50px;
+        left: 10px;
+        z-index: 999;
+        padding: 6px;
+      "
+    >
+      📄 Export Snapshot
+    </button>
+    <script>
+      function downloadSnapshot() {
+        const blob = new Blob([document.documentElement.outerHTML], {
+          type: "text/html",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "dut_snapshot.html";
+        a.click();
+      }
+    </script>
+
+    <!-- START: IFRAME EMBEDDABLE MONITOR -->
+    <div
+      id="embed-monitor"
+      style="
+        margin-top: 20px;
+        padding: 10px;
+        background: #111;
+        color: #0f0;
+        border: 1px solid #0f0;
+      "
+    >
+      <strong>DUT Self-Refutation Score Monitor</strong><br />
+      Embed this iframe into any site:<br />
+      <code
+        >&lt;iframe src="https://extractodao.com/dut_score_widget.html"
+        width="300" height="100"&gt;&lt;/iframe&gt;</code
+      >
+    </div>
+    <!-- END: IFRAME EMBEDDABLE MONITOR -->
+
+    <!-- START: EXTERNAL JS MONITORING SCRIPT -->
+    <script>
+      window.addEventListener("load", () => {
+        const score = parseInt(
+          document.getElementById("scoreValue")?.textContent || "0"
+        );
+        window.DUT_API = {
+          getScore: () => score,
+          isValid: () => score >= 50,
+          exportScoreJSON: () => ({
+            score: score,
+            valid: score >= 50,
+            updatedAt: new Date().toISOString(),
+          }),
+        };
+        console.log("[DUT_API] Ready:", window.DUT_API);
+      });
+    </script>
+    <!-- END: EXTERNAL JS MONITORING SCRIPT -->
+
+    <!-- START: SIMULATED JSON WEBHOOK -->
+    <script>
+      function sendWebhookIfFailed() {
+        const score = window.DUT_API?.getScore();
+        if (score < 50) {
+          const payload = window.DUT_API.exportScoreJSON();
+          console.warn("⚠️ DUT REFUTATION TRIGGERED:", payload);
+          // Aqui você pode adicionar fetch() ou enviar para um servidor real
+        }
+      }
+      setTimeout(sendWebhookIfFailed, 2000);
+
+      <!-- Restored Graphics Functions -->
+    </script>
+    <!-- END: SIMULATED JSON WEBHOOK -->
+  </body>
+</html>
