@@ -952,6 +952,14 @@
         }
       }
     </style>
+
+    <script>
+      fetch("https://api.countapi.xyz/hit/ninjasupreme2025/visits")
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("live_count").textContent = data.value;
+        });
+    </script>
   </head>
   <body>
     <div id="notifications"></div>
